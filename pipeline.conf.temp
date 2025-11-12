@@ -1,0 +1,18 @@
+[api]
+api_key = 
+base_url = https://api.openweathermap.org/data/2.5
+api_timeout = 10
+max_retries = 3
+cities = Buenos Aires,Córdoba,Rosario,La Plata,Mar del Plata
+
+[minio]
+endpoint_url = http://31.97.241.212:9000
+access_key = 
+secret_key = 
+region = us-east-1
+bucket_name = 
+
+[data_lake]
+base_path = data_lake
+temporal_path = weather_temporal
+static_path = city_metadata
