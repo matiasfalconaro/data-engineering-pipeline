@@ -1,17 +1,13 @@
 import logging
-
-from deltalake import DeltaTable
 from datetime import datetime, timezone
 from typing import Optional
 from deltalake import DeltaTable
 from deltalake.exceptions import TableNotFoundError
 
-from src.layers.bronze import get_current_weather
-
 logger = logging.getLogger(__name__)
 
 
-def extract_and_save_weather_data(config, weather_to_dataframe, save_to_delta_lake) -> bool:
+def extract_and_save_weather_data(config, api_client, data_transformer, save_to_delta_lake) -> bool:
     """
     Extracción INCREMENTAL usando Delta Lake transaction log.
     """
@@ -24,10 +20,10 @@ def extract_and_save_weather_data(config, weather_to_dataframe, save_to_delta_la
     # Extraer datos
     extraction_start = datetime.now(timezone.utc)
     weather_data = []
-
+    
     for city in config['cities']:
         logger.info(f"Extrayendo: {city}")
-        data = get_current_weather(city, config)
+        data = api_client.get_current_weather(city)
         if data:
             weather_data.append(data)
 
@@ -35,10 +31,10 @@ def extract_and_save_weather_data(config, weather_to_dataframe, save_to_delta_la
         logger.warning("No se obtuvieron datos")
         return False
 
-    df_weather = weather_to_dataframe(weather_data)
+    df_weather = data_transformer.weather_to_dataframe(weather_data)
     logger.info(f"Datos extraídos: {len(df_weather)} registros")
 
-    # MERGE sin métricas (función no retorna métricas)
+    # MERGE incremental
     logger.info("Ejecutando MERGE incremental...")
     save_to_delta_lake(
         df=df_weather,
@@ -57,7 +53,6 @@ def extract_and_save_weather_data(config, weather_to_dataframe, save_to_delta_la
     logger.info(f"   • Duración:               {duration:.2f}s")
     logger.info(f"   • Método checkpoint:      Delta Lake transaction log")
 
-    logger.info("Extracción incremental completada")
     return True
 
 
@@ -105,14 +100,20 @@ def _should_extract_incremental(config, interval_minutes: int = 10) -> bool:
     return True
 
 
-def refresh_city_metadata(config, get_city_metadata, metadata_to_dataframe, save_to_delta_lake) -> bool:
+def refresh_city_metadata(config, api_client, data_transformer, save_to_delta_lake) -> bool:
     """
     Extracción FULL de metadatos de ciudades.
     """
-    metadata = get_city_metadata(config['cities'], config)
+    metadata = []
+    
+    for city in config['cities']:
+        logger.info(f"Extrayendo metadatos para: {city}")
+        city_metadata = api_client.get_city_metadata(city)
+        if city_metadata:
+            metadata.append(city_metadata)
 
     if metadata:
-        df_metadata = metadata_to_dataframe(metadata)
+        df_metadata = data_transformer.metadata_to_dataframe(metadata)
 
         # EXTRACCIÓN FULL
         save_to_delta_lake(
@@ -133,11 +134,6 @@ def process_weather_data(config, clean_weather_data, enrich_temporal_features,
                         save_to_delta_lake) -> bool:
     """
     Orquesta todo el pipeline de procesamiento
-    Aplica las transformaciones al DataFrame en cascada
-    - Limpieza
-    - Enriquecimiento temporal
-    - Categorización
-    - Agregados diarios
     """
     try:
         logger.info("=== INICIANDO PIPELINE DE PROCESAMIENTO ===")
@@ -155,11 +151,8 @@ def process_weather_data(config, clean_weather_data, enrich_temporal_features,
         logger.info("Aplicando transformaciones...")
 
         cleaned_df = clean_weather_data(raw_weather_df)
-
         enriched_df = enrich_temporal_features(cleaned_df)
-
         categorized_df = create_weather_categories(enriched_df)
-
         daily_aggregates_df = create_city_daily_aggregates(categorized_df)
 
         # 3. Guardar datos procesados

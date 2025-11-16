@@ -8,6 +8,8 @@ from deltalake import DeltaTable, write_deltalake
 from deltalake.exceptions import TableNotFoundError
 from typing import List, Optional
 
+from src.core.clients import MinIOClient
+
 
 logger = logging.getLogger(__name__)
 
@@ -32,23 +34,20 @@ def save_to_delta_lake(df: pd.DataFrame,
 
             try:
                 dt = DeltaTable(base_path, storage_options=storage_options)
-                dt.merge(
-                    source=df,
-                    predicate=merge_predicate,
-                    source_alias="source",
-                    target_alias="target"
-                ).when_matched_update_all().when_not_matched_insert_all().execute()
+                dt.merge(source=df,
+                        predicate=merge_predicate,
+                        source_alias="source",
+                        target_alias="target"
+                        ).when_matched_update_all().when_not_matched_insert_all().execute()
                 logger.info(f"MERGE exitoso: {len(df)} registros procesados")
 
             except TableNotFoundError:
                 logger.info("Tabla no existe, creando inicialmente")
-                write_deltalake(
-                    base_path,
-                    pa_table,
-                    mode="overwrite",
-                    partition_by=partition_cols,
-                    storage_options=storage_options
-                )
+                write_deltalake(base_path,
+                               pa_table,
+                               mode="overwrite",
+                               partition_by=partition_cols,
+                               storage_options=storage_options)
                 dt = DeltaTable(base_path, storage_options=storage_options)
                 _apply_initial_constraints(dt, base_path, storage_options)
                 logger.info(f"Tabla creada con constraints: {len(df)} registros")
@@ -60,13 +59,11 @@ def save_to_delta_lake(df: pd.DataFrame,
             except TableNotFoundError:
                 table_exists = False
 
-            write_deltalake(
-                base_path,
-                pa_table,
-                mode=mode,
-                partition_by=partition_cols,
-                storage_options=storage_options
-            )
+            write_deltalake(base_path,
+                           pa_table,
+                           mode=mode,
+                           partition_by=partition_cols,
+                           storage_options=storage_options)
             logger.info(f"{mode.upper()} exitoso: {len(df)} registros")
 
             if not table_exists and mode == "overwrite":
@@ -80,6 +77,7 @@ def save_to_delta_lake(df: pd.DataFrame,
     except Exception as e:
         logger.error(f"Error escribiendo en Delta Lake ({base_path}): {e}")
         raise
+
 
 def _apply_initial_constraints(dt: DeltaTable, base_path: str, storage_options: dict) -> None:
     """
@@ -144,25 +142,22 @@ def verify_delta_table(path: str, table_name: str, storage_options: dict) -> boo
         return False
 
 
-def show_bucket_tree(config: dict) -> None:
-    """Muestra árbol completo del data lake"""
-
+def show_bucket_tree(minio_client: MinIOClient) -> None:
+    """Muestra árbol completo del data lake usando MinIOClient."""
+    
     print("ESTRUCTURA DEL DATA LAKE")
     print()
 
-    s3 = boto3.client('s3',
-                      endpoint_url=config['minio_config']["endpoint_url"],
-                      aws_access_key_id=config['minio_config']["access_key"],
-                      aws_secret_access_key=config['minio_config']["secret_key"])
+    # Usar el cliente MinIO en lugar de crear uno nuevo
+    s3_client = minio_client.s3_client
+    bucket = minio_client.minio_config["bucket_name"]
 
-    bucket = config['minio_config']["bucket_name"]
-
-    # Creo árbol
+    # Crear árbol
     tree = Tree()
     tree.create_node(bucket, bucket)
 
-    # Proceso objetos
-    for page in s3.get_paginator('list_objects_v2').paginate(Bucket=bucket):
+    # Procesar objetos
+    for page in s3_client.get_paginator('list_objects_v2').paginate(Bucket=bucket):
         for obj in page.get('Contents', []):
             parts = obj['Key'].split('/')
             parent = bucket
@@ -176,3 +171,9 @@ def show_bucket_tree(config: dict) -> None:
                 parent = node_id
 
     tree.show()
+
+# Mantener función legacy para compatibilidad
+def show_bucket_tree_legacy(config: dict) -> None:
+    """Función legacy - usar show_bucket_tree(minio_client) en nuevo código."""
+    minio_client = MinIOClient(config)
+    show_bucket_tree(minio_client)

@@ -1,9 +1,10 @@
 # TP2: Pipeline Datalakehouse para API de clima
 Data Engineering - CEL UTN
 
+Modulo 1: Extracion y almacenamiento de datos
 Modulo 2: Procesamiento de datos
 
-Fecha limite de entrega: Domingo, 9 de Noviembre de 2025, 23:59
+Fecha limite de entrega: Domingo, 23 de November de 2025, 23:59
 
 Alumno: Matias Falconaro
 

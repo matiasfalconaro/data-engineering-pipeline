@@ -20,6 +20,7 @@ def clean_weather_data(df: pd.DataFrame) -> pd.DataFrame:
 
     # 2. Nulos
     critical_columns = ['temperature', 'humidity', 'pressure', 'wind_speed']
+    
     for col in critical_columns:
         if col in cleaned_df.columns:
             null_count = cleaned_df[col].isnull().sum()
@@ -32,6 +33,7 @@ def clean_weather_data(df: pd.DataFrame) -> pd.DataFrame:
     # Temperatura Argentina (Rango: -20/+50)
     temp_mask = (cleaned_df['temperature'] >= -20) & (cleaned_df['temperature'] <= 50)
     outliers_temp = len(cleaned_df) - temp_mask.sum()
+
     if outliers_temp > 0:
         logger.warning(f"Valores de temperatura fuera de rango: {outliers_temp}")
         cleaned_df = cleaned_df[temp_mask]
@@ -39,6 +41,7 @@ def clean_weather_data(df: pd.DataFrame) -> pd.DataFrame:
     # Humedad (Rango: 0-100%)
     humidity_mask = (cleaned_df['humidity'] >= 0) & (cleaned_df['humidity'] <= 100)
     outliers_humidity = len(cleaned_df) - humidity_mask.sum()
+
     if outliers_humidity > 0:
         logger.warning(f"Valores de humedad fuera de rango: {outliers_humidity}")
         cleaned_df = cleaned_df[humidity_mask]

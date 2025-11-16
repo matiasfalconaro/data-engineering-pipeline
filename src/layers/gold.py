@@ -21,18 +21,31 @@ def create_city_daily_aggregates(df: pd.DataFrame) -> pd.DataFrame:
         'temp_category': lambda x: x.mode()[0] if len(x.mode()) > 0 else 'desconocido'
     }).reset_index()
 
-    daily_agg.columns = [
-        'city_id', 'city_name', 'date',
-        'avg_temperature', 'max_temperature', 'min_temperature', 'temp_std', 'temp_count',
-        'avg_humidity', 'avg_pressure', 'avg_wind_speed',
-        'predominant_weather', 'predominant_temp_category'
-    ]
+    daily_agg.columns = ['city_id',
+                        'city_name',
+                        'date',
+                        'avg_temperature',
+                        'max_temperature',
+                        'min_temperature',
+                        'temp_std',
+                        'temp_count',
+                        'avg_humidity',
+                        'avg_pressure',
+                        'avg_wind_speed',
+                        'predominant_weather',
+                        'predominant_temp_category']
 
     daily_agg['daily_temp_range'] = daily_agg['max_temperature'] - daily_agg['min_temperature']
     daily_agg['temp_std'] = daily_agg['temp_std'].fillna(0)
 
-    numeric_cols = ['avg_temperature', 'max_temperature', 'min_temperature', 'temp_std',
-                   'avg_humidity', 'avg_pressure', 'avg_wind_speed', 'daily_temp_range']
+    numeric_cols = ['avg_temperature',
+                    'max_temperature',
+                    'min_temperature',
+                    'temp_std',
+                    'avg_humidity',
+                    'avg_pressure',
+                    'avg_wind_speed',
+                    'daily_temp_range']
     
     for col in numeric_cols:
         daily_agg[col] = daily_agg[col].round(2)

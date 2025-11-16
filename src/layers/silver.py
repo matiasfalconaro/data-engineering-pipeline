@@ -23,6 +23,7 @@ def enrich_temporal_features(df: pd.DataFrame) -> pd.DataFrame:
     logger.info("Enriquecimiento temporal completado")
     return enriched_df
 
+
 def _get_time_category(hour):
     hour = int(hour)
     if 5 <= hour < 12:
@@ -34,6 +35,7 @@ def _get_time_category(hour):
     else:
         return 'madrugada'
 
+
 def _get_southern_season(month):
     if 12 <= month or month <= 2:
         return 'verano'
@@ -43,6 +45,7 @@ def _get_southern_season(month):
         return 'invierno'
     else:
         return 'primavera'
+
 
 def create_weather_categories(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -62,6 +65,7 @@ def create_weather_categories(df: pd.DataFrame) -> pd.DataFrame:
     logger.info("Categorización climática completada")
     return categorized_df
 
+
 def _categorize_temperature(temp):
     if temp < 10:
         return 'frío'
@@ -72,6 +76,7 @@ def _categorize_temperature(temp):
     else:
         return 'caluroso'
 
+
 def _categorize_humidity(humidity):
     if humidity < 30:
         return 'seco'
@@ -81,6 +86,7 @@ def _categorize_humidity(humidity):
         return 'húmedo'
     else:
         return 'muy húmedo'
+
 
 def _categorize_wind_speed(speed):
     if speed < 1:
@@ -93,6 +99,7 @@ def _categorize_wind_speed(speed):
         return 'ventoso'
     else:
         return 'muy ventoso'
+
 
 def _summarize_weather_condition(main, description):
     clear_conditions = ['clear', 'cielo claro']
