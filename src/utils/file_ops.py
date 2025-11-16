@@ -4,9 +4,11 @@ import pyarrow as pa
 import logging
 
 from treelib import Tree
-from deltalake import DeltaTable, write_deltalake
+from deltalake import (DeltaTable,
+                       write_deltalake)
 from deltalake.exceptions import TableNotFoundError
-from typing import List, Optional
+from typing import (List,
+                    Optional)
 
 from src.core.clients import MinIOClient
 

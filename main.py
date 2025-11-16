@@ -14,10 +14,10 @@ from src.core.clients import MinIOClient
 from src.utils.file_ops import (save_to_delta_lake,
                                 verify_delta_table,
                                 show_bucket_tree)
-from src.utils.quality import clean_weather_data
 from src.layers.bronze import (WeatherAPIClient,
                                WeatherDataTransformer)
-from src.layers.silver import (enrich_temporal_features,
+from src.layers.silver import (clean_weather_data,
+                               enrich_temporal_features,
                                create_weather_categories)
 from src.layers.gold import create_city_daily_aggregates
 from src.orchestation.flows import (extract_and_save_weather_data,

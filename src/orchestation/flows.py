@@ -1,8 +1,11 @@
 import logging
-from datetime import datetime, timezone
+
+from datetime import (datetime,
+                      timezone)
 from typing import Optional
 from deltalake import DeltaTable
 from deltalake.exceptions import TableNotFoundError
+
 
 logger = logging.getLogger(__name__)
 

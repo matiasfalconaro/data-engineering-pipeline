@@ -1,9 +1,13 @@
 import boto3
 import logging
+
 from botocore.exceptions import ClientError
-from typing import List, Optional
+from typing import (List,
+                    Optional)
+
 
 logger = logging.getLogger(__name__)
+
 
 class MinIOClient:
     """

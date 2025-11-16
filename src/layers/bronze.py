@@ -3,8 +3,12 @@ import time
 import pandas as pd
 import logging
 
-from datetime import datetime, timezone
-from typing import Dict, List, Optional, Union
+from datetime import (datetime,
+                      timezone)
+from typing import (Dict,
+                    List,
+                    Optional,
+                    Union)
 
 
 logger = logging.getLogger(__name__)
