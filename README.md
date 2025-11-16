@@ -1,24 +1,47 @@
-# TP1: Pipeline Datalakehouse para API de clima
-Data Engineering - CEL UTN
+## OpenWeatherMap Datalakehouse pipeline
+ETL pipeline for weather data:
+- Extracts from OpenWeather API
+- Processes through medallion architecture
+- Stores in MinIO as Delta Lake
 
-Modulo 1: Extraccion de datos y almacenamiento en Data Lake
+# Data Flow
+```bash
+Bronze: Raw API data → MinIO (incremental, 10min intervals)
+Silver: Cleaned + temporal features + weather categories
+Gold: Daily aggregates by city
+```
 
-Fecha limite de entrega: Domingo, 9 de Noviembre de 2025, 23:59
+## Quick Start
+```bash
+# Clone and setup
+git clone <your-repo>
+cd weather-data-pipeline
+pip install -r requirements.txt
 
-Alumno: Matias Falconaro
+# Configure
+cp pipeline.conf.example pipeline.conf
+# Edit pipeline.conf with your API keys and MinIO credentials
 
-## Documentación de la API
+# Run full pipeline
+python main.py
+```
 
-https://openweathermap.org/api/one-call-3
+## Architecture
+```bash
+src/
+├── core/           # Config & clients
+├── layers/         # Data processing
+│   ├── bronze/     # Raw extraction
+│   ├── silver/     # Cleaning & enrichment  
+│   └── gold/       # Aggregations
+├── utils/          # File ops & quality
+└── orchestration/  # Pipeline flows
+```
 
-## Definición del Alcance para el dominio de datos
-
-Criterio de Selección Poblacional: 5 ciudades argentinas más pobladas:
-
-[Ciudades más pobladas de Argentina - Wikipedia](https://en.wikipedia.org/wiki/List_of_cities_in_Argentina_by_population)
-
-Cobertura estratégica de los centros urbanos con mayor densidad poblacional para pronósticos climáticos que impacten a la mayor cantidad de habitantes.
-
-## Arquitectura
-
-![Arquitectura del Pipeline](https://drive.google.com/uc?export=view&id=1rxQImMYwympOK95-Y5dKXiYBXTpOo_N6)
+## Requirements
+```
+Python 3.8+
+MinIO (S3-compatible storage)
+OpenWeather API key
+See requirements.txt for dependencies
+```
